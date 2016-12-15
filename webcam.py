@@ -7,6 +7,7 @@ from mingus.midi import fluidsynth
 SF2 = 'Nice-Keys-Giga-JNv1.7.sf2'  # https://sites.google.com/site/soundfonts4u/
 
 if not fluidsynth.init(SF2):
+    import sys
     print('Failed to load {}'.format(SF2))
     sys.exit(1)
 else:
@@ -14,7 +15,7 @@ else:
 
 x_offset = 480
 y_offset = 30
-height = 720 - 2 * y_offset
+height = 720 - 2 * y_offset - 100
 width = 1280 - 2 * x_offset
 
 cam = cv2.VideoCapture(0)
@@ -29,7 +30,7 @@ HAS_USER_WAIT = 50
 
 NOTE_NAMES = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
 NOTE_COUNT = 7
-notes = NoteContainer([Note('C', 1), Note('E', 1), Note('G', 1)])
+notes = NoteContainer([Note("A", 4), Note("D", 4), Note("G", 4)])
 
 if cam.isOpened():
     while True:
@@ -60,12 +61,19 @@ if cam.isOpened():
                     print('========= BLINK =========')
 
                     fluidsynth.play_NoteContainer(notes)
+
+                    new_notes = NoteContainer()
                     for note in notes:
-                        note.set_note()
+                        # note.set_note
+                        new_note = note.from_int((int(note) + 1) % 12)
+                        new_notes.add_note(new_note)
+                       # notes.add_note(new_note)
+                       # notes.remove_note(note)
                         # note.octave_up()
                     #    # note.set_note()
                     #    note.octave_up()
-
+                    print(new_notes)
+                    notes = new_notes
             else:
                 has_user_counter += 1
                 has_user_timeout = 0
