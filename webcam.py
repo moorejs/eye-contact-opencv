@@ -12,7 +12,10 @@ if not fluidsynth.init(SF2):
 else:
     print('found')
 
-size = (640, 360)  # (1280, 720)  # (640, 360)
+x_offset = 480
+y_offset = 30
+height = 720 - 2 * y_offset
+width = 1280 - 2 * x_offset
 
 cam = cv2.VideoCapture(0)
 
@@ -30,51 +33,51 @@ notes = NoteContainer([Note('C', 1), Note('E', 1), Note('G', 1)])
 
 if cam.isOpened():
     while True:
-        for (ret, frame) in [cam.read() for cam in cams]:
-            if ret:
-                print("Has user: ", has_user, has_user_counter,
-                      "timeout timer", has_user_timeout)
+        ret, frame = cam.read()
+        frame = frame[y_offset:y_offset + height, x_offset:x_offset + width]
+        if ret:
+            print("Has user: ", has_user, has_user_counter,
+                  "timeout timer", has_user_timeout)
 
-                # cut out part of face
+            detect_timer += 1
 
-                detect_timer += 1
+            # frame = cv2.cvtColor(cv2.resize(
+            #    frame, size), cv2.COLOR_BGR2GRAY)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-                frame = cv2.cvtColor(cv2.resize(
-                    frame, size), cv2.COLOR_BGR2GRAY)
+            faces = cv2.CascadeClassifier('haarcascade_eye.xml')
+            detected = faces.detectMultiScale(frame, 1.3, 5)
 
-                faces = cv2.CascadeClassifier('haarcascade_eye.xml')
-                detected = faces.detectMultiScale(frame, 1.3, 5)
+            if not len(detected):
+                has_user_counter = 0
+                has_user_timeout += 1
 
-                if detected == ():
-                    has_user_counter = 0
-                    has_user_timeout += 1
+                if has_user_timeout > HAS_USER_WAIT:
+                    has_user = False
+                elif has_user and detect_timer > DETECT_WAIT:
+                    detect_timer = 0
 
-                    if has_user_timeout > HAS_USER_WAIT:
-                        has_user = False
-                    elif has_user and detect_timer > DETECT_WAIT:
-                        detect_timer = 0
+                    print('========= BLINK =========')
 
-                        print('========= BLINK =========')
+                    fluidsynth.play_NoteContainer(notes)
+                    for note in notes:
+                        note.set_note()
+                        # note.octave_up()
+                    #    # note.set_note()
+                    #    note.octave_up()
 
-                        fluidsynth.play_NoteContainer(notes)
-                        for note in notes:
-                            note.set_note()
-                            # note.octave_up()
-                        #    # note.set_note()
-                        #    note.octave_up()
+            else:
+                has_user_counter += 1
+                has_user_timeout = 0
+                if not has_user and has_user_counter > HAS_USER_WAIT:
+                    has_user = True
+                    octave = 0
 
-                else:
-                    has_user_counter += 1
-                    has_user_timeout = 0
-                    if not has_user and has_user_counter > HAS_USER_WAIT:
-                        has_user = True
-                        octave = 0
+            cv2.namedWindow('Cam View', cv2.WINDOW_NORMAL)
+            cv2.imshow('Cam View', frame)
 
-                cv2.namedWindow('Cam View', cv2.WINDOW_NORMAL)
-                cv2.imshow('Cam View', frame)
-
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
 cam.release()
 
