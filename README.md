@@ -1,10 +1,12 @@
-eye-contact-opencv
+#eye-contact-opencv
 
 Made to detect blinking and play piano sounds on blink. Uses the Python bindings for OpenCV and FluidSynth.
 
-This was hacked together very quickly for an art project. See http://ideate.xsead.cmu.edu/gallery/projects/eye-contact for more.
+This was hacked together very quickly for an art project.
 
-Usage
+See http://ideate.xsead.cmu.edu/gallery/projects/eye-contact for more.
+
+##Usage
 
 Made for Python 3
 
